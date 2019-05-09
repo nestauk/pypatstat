@@ -1,0 +1,193 @@
+nohup: ignoring input
+INFO:root:Downloading and generating the schema...
+INFO:root:Generated the schema for 2018_10_02. A database will be created at mysql+pymysql://innovationMaster:innovationmapping@innovation-mapping-mysql-mysql5721.ci9272ypsbyf.eu-west-2.rds.amazonaws.com/patstat_2018_10_02
+INFO:root:Processing file download/files/2018/10/02/1538467438194/data_PATSTAT_Global_2018_Autumn_01.zip...
+INFO:root:		Skipping tls201_part01.zip
+INFO:root:		Skipping tls201_part02.zip
+INFO:root:		Skipping tls201_part03.zip
+INFO:root:		Skipping tls201_part04.zip
+INFO:root:		Skipping tls201_part05.zip
+INFO:root:		Skipping tls201_part06.zip
+INFO:root:		Skipping tls201_part07.zip
+INFO:root:		Skipping tls201_part08.zip
+INFO:root:		Skipping tls201_part09.zip
+INFO:root:		Skipping tls201_part10.zip
+INFO:root:Processing file download/files/2018/10/02/1538468099890/data_PATSTAT_Global_2018_Autumn_02.zip...
+INFO:root:		Skipping tls202_part01.zip
+INFO:root:		Skipping tls202_part02.zip
+INFO:root:		Skipping tls202_part03.zip
+INFO:root:		Skipping tls203_part01.zip
+INFO:root:		Skipping tls203_part02.zip
+INFO:root:		Skipping tls203_part03.zip
+INFO:root:		Skipping tls203_part04.zip
+INFO:root:Processing file download/files/2018/10/02/1538469289043/data_PATSTAT_Global_2018_Autumn_03.zip...
+INFO:root:		Skipping tls203_part05.zip
+INFO:root:		Skipping tls203_part06.zip
+INFO:root:		Skipping tls203_part07.zip
+INFO:root:		Skipping tls203_part08.zip
+INFO:root:		Skipping tls203_part09.zip
+INFO:root:		Skipping tls203_part10.zip
+INFO:root:		Skipping tls203_part11.zip
+INFO:root:		Skipping tls203_part12.zip
+INFO:root:		Skipping tls203_part13.zip
+INFO:root:Processing file download/files/2018/10/02/1538470302447/data_PATSTAT_Global_2018_Autumn_04.zip...
+INFO:root:		Skipping tls203_part14.zip
+INFO:root:		Skipping tls203_part15.zip
+INFO:root:		Skipping tls203_part16.zip
+INFO:root:		Skipping tls203_part17.zip
+INFO:root:		Skipping tls203_part18.zip
+INFO:root:		Skipping tls203_part19.zip
+INFO:root:		Skipping tls203_part20.zip
+INFO:root:		Skipping tls203_part21.zip
+INFO:root:		Skipping tls203_part22.zip
+INFO:root:Processing file download/files/2018/10/02/1538471064334/data_PATSTAT_Global_2018_Autumn_05.zip...
+INFO:root:		Skipping tls203_part23.zip
+INFO:root:		Skipping tls203_part24.zip
+INFO:root:		Skipping tls203_part25.zip
+INFO:root:		Skipping tls203_part26.zip
+INFO:root:		Skipping tls203_part27.zip
+INFO:root:		Skipping tls203_part28.zip
+INFO:root:		Skipping tls203_part29.zip
+INFO:root:		Skipping tls203_part30.zip
+INFO:root:Processing file download/files/2018/10/02/1538471877519/data_PATSTAT_Global_2018_Autumn_06.zip...
+INFO:root:		Skipping tls203_part31.zip
+INFO:root:		Skipping tls203_part32.zip
+INFO:root:		Skipping tls203_part33.zip
+INFO:root:		Skipping tls203_part34.zip
+INFO:root:		Skipping tls204_part01.zip
+INFO:root:		Skipping tls205_part01.zip
+INFO:root:		Skipping tls206_part01.zip
+INFO:root:		Skipping tls206_part02.zip
+INFO:root:		Skipping tls206_part03.zip
+INFO:root:Processing file download/files/2018/10/02/1538479169210/data_PATSTAT_Global_2018_Autumn_07.zip...
+INFO:root:		Skipping tls206_part04.zip
+INFO:root:		Skipping tls206_part05.zip
+INFO:root:		Skipping tls207_part01.zip
+INFO:root:		Skipping tls207_part02.zip
+INFO:root:		Skipping tls207_part03.zip
+INFO:root:		Skipping tls209_part01.zip
+INFO:root:		Skipping tls209_part02.zip
+INFO:root:		Skipping tls209_part03.zip
+INFO:root:		Skipping tls209_part04.zip
+INFO:root:		Skipping tls209_part05.zip
+INFO:root:		Skipping tls209_part06.zip
+INFO:root:		Skipping tls209_part07.zip
+INFO:root:		Skipping tls209_part08.zip
+INFO:root:Processing file download/files/2018/10/02/1538481390735/data_PATSTAT_Global_2018_Autumn_08.zip...
+INFO:root:		Skipping tls210_part01.zip
+INFO:root:		Skipping tls211_part01.zip
+INFO:root:		Skipping tls211_part02.zip
+INFO:root:		Skipping tls211_part03.zip
+INFO:root:		Skipping tls211_part04.zip
+INFO:root:		Skipping tls211_part05.zip
+INFO:root:		Skipping tls212_part01.zip
+INFO:root:		Skipping tls212_part02.zip
+INFO:root:		Skipping tls212_part03.zip
+INFO:root:		Skipping tls212_part04.zip
+INFO:root:		Skipping tls212_part05.zip
+INFO:root:Processing file download/files/2018/10/02/1538482249498/data_PATSTAT_Global_2018_Autumn_09.zip...
+INFO:root:		Skipping tls212_part06.zip
+INFO:root:		Skipping tls212_part07.zip
+INFO:root:		Skipping tls212_part08.zip
+INFO:root:		Skipping tls214_part01.zip
+INFO:root:		Skipping tls214_part02.zip
+INFO:root:		Skipping tls214_part03.zip
+INFO:root:		Skipping tls214_part04.zip
+INFO:root:Processing file download/files/2018/10/02/1538483672678/data_PATSTAT_Global_2018_Autumn_10.zip...
+INFO:root:		Skipping tls214_part05.zip
+INFO:root:		Skipping tls215_part01.zip
+INFO:root:		Skipping tls216_part01.zip
+INFO:root:		Skipping tls222_part01.zip
+INFO:root:		Skipping tls222_part02.zip
+INFO:root:		Skipping tls222_part03.zip
+INFO:root:		Skipping tls222_part04.zip
+INFO:root:		Skipping tls222_part05.zip
+INFO:root:		Skipping tls222_part06.zip
+INFO:root:		Skipping tls222_part07.zip
+INFO:root:		Skipping tls223_part01.zip
+INFO:root:		Skipping tls224_part01.zip
+INFO:root:		Skipping tls224_part02.zip
+INFO:root:		Skipping tls224_part03.zip
+INFO:root:		Skipping tls224_part04.zip
+INFO:root:		Skipping tls224_part05.zip
+INFO:root:Processing file download/files/2018/10/02/1538484334898/data_PATSTAT_Global_2018_Autumn_11.zip...
+INFO:root:		Skipping tls224_part06.zip
+INFO:root:		Skipping tls224_part07.zip
+INFO:root:		Skipping tls224_part08.zip
+INFO:root:		Skipping tls226_part01.zip
+INFO:root:		Skipping tls226_part02.zip
+INFO:root:		Skipping tls226_part03.zip
+INFO:root:		Skipping tls226_part04.zip
+INFO:root:		Skipping tls226_part05.zip
+INFO:root:		Skipping tls227_part01.zip
+INFO:root:		Skipping tls227_part02.zip
+INFO:root:		Skipping tls227_part03.zip
+INFO:root:Processing file download/files/2018/10/02/1538486226222/data_PATSTAT_Global_2018_Autumn_12.zip...
+INFO:root:		Skipping tls227_part04.zip
+INFO:root:		Skipping tls228_part01.zip
+INFO:root:		Skipping tls228_part02.zip
+INFO:root:		Skipping tls229_part01.zip
+INFO:root:		Skipping tls229_part02.zip
+INFO:root:		Skipping tls230_part01.zip
+INFO:root:		Skipping tls230_part02.zip
+INFO:root:		Skipping tls231_part01.zip
+INFO:root:		Skipping tls231_part02.zip
+INFO:root:		Skipping tls231_part03.zip
+INFO:root:		Skipping tls231_part04.zip
+INFO:root:		Skipping tls231_part05.zip
+INFO:root:		Skipping tls231_part06.zip
+INFO:root:		Skipping tls231_part07.zip
+INFO:root:		Skipping tls231_part08.zip
+INFO:root:		Skipping tls231_part09.zip
+INFO:root:		Skipping tls231_part10.zip
+INFO:root:		Skipping tls231_part11.zip
+INFO:root:		Skipping tls231_part12.zip
+INFO:root:Processing file download/files/2018/10/02/1538487017457/data_PATSTAT_Global_2018_Autumn_13.zip...
+INFO:root:		Skipping tls231_part13.zip
+INFO:root:		Skipping tls231_part14.zip
+INFO:root:		Skipping tls231_part15.zip
+INFO:root:		Skipping tls231_part16.zip
+INFO:root:		Skipping tls231_part17.zip
+INFO:root:		Skipping tls231_part18.zip
+INFO:root:		Skipping tls231_part19.zip
+INFO:root:		Skipping tls231_part20.zip
+INFO:root:		Skipping tls231_part21.zip
+INFO:root:		Skipping tls231_part22.zip
+INFO:root:		Skipping tls231_part23.zip
+INFO:root:		Skipping tls231_part24.zip
+INFO:root:		Skipping tls231_part25.zip
+INFO:root:		Skipping tls231_part26.zip
+INFO:root:		Skipping tls231_part27.zip
+INFO:root:		Skipping tls231_part28.zip
+INFO:root:		Skipping tls231_part29.zip
+INFO:root:		Skipping tls231_part30.zip
+INFO:root:		Skipping tls231_part31.zip
+INFO:root:		Skipping tls231_part32.zip
+INFO:root:		Skipping tls231_part33.zip
+INFO:root:		Skipping tls231_part34.zip
+INFO:root:		Skipping tls801_part01.zip
+INFO:root:		Skipping tls803_part01.zip
+INFO:root:		Skipping tls901_part01.zip
+INFO:root:		Skipping tls902_part01.zip
+INFO:root:		Skipping tls904_part01.zip
+INFO:root:	Processing nested file tls906_part01.zip...
+INFO:root:		Retrieved class from table name tls906.
+INFO:root:		Written 12500000 entries for tls906.
+INFO:root:	Processing nested file tls906_part02.zip...
+INFO:root:		Retrieved class from table name tls906.
+Traceback (most recent call last):
+  File "data_loader.py", line 180, in <module>
+    skip_fnames=['tls2','tls8','tls901','tls902','tls904'])
+  File "data_loader.py", line 170, in download_patstat_to_db
+    skip_fnames=skip_fnames, username=patstat_usr, pwd=patstat_pwd)
+  File "data_loader.py", line 146, in _download_patstat_to_db
+    skip_fnames=skip_fnames)
+  File "data_loader.py", line 125, in zipfile_to_db
+    for rows in iterchunks(z, chunksize=chunksize):
+  File "data_loader.py", line 26, in iterchunks
+    with BytesIO(zipped_csv.read()) as zio:
+  File "/home/ec2-user/miniconda3/envs/py36/lib/python3.6/zipfile.py", line 858, in read
+    buf += self._read1(self.MAX_N)
+  File "/home/ec2-user/miniconda3/envs/py36/lib/python3.6/zipfile.py", line 948, in _read1
+    data = self._decompressor.decompress(data, n)
+MemoryError

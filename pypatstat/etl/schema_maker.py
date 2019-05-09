@@ -16,36 +16,69 @@ INDEX_DOC_STR = 'index_documentation_scripts'
 
 
 def extract_datestamp(url):
+    """Extract datestamp from the PATSTAT file URL.
+    
+    Args:
+        url (str): PATSTAT file URL
+    Returns:
+        datastamp (str): Date formatted as "%Y_%m_%d"
+    """
     numbers = re.findall("(\d+)", url)
     return "_".join(numbers[0:3])
 
+
 def _get_field_data(sql_line):
+    """Extract field information from a line of SQL CREATE TABLE code.
+    
+    Args:
+        sql_line (str): A line of SQL CREATE TABLE code.
+    Returns:
+        field_info (tuple): Field name, field type, field length and default value.
+    """
+    # Try to extract the field name, type and length
     results = re.findall(SQL_FIELD_REGEX_1, sql_line)
     if len(results) == 0:
-        field_name, field_type  = re.findall(SQL_FIELD_REGEX_2, sql_line)[0]
+        field_name, field_type = re.findall(SQL_FIELD_REGEX_2, sql_line)[0]
         field_length = None
-    else:
+    else:        
         field_name, field_type, field_length = results[0]
+        # Convert numeric lengths
         if field_length.isdigit():
             field_length = int(field_length)
+        # MSSS 'max' value is ok, but anything else isn't anticipated
         if not (type(field_length) is int or field_length.lower() == "max"):
             raise ValueError(f"Unexpected field length for {field_type.upper()}: "
                              f"'{field_length}'")
+    # Find the default value, if any
     default_value = None
     result = re.findall(SQL_FIELD_DEFAULT, sql_line)
     if len(result) > 0:
         default_value = result[0]
+        # Strip out quotes if this is a number
         if default_value.replace("'","").isdigit():
             default_value = int(default_value.replace("'",""))
-    return (field_name, field_type, field_length, default_value)
+    return (field_name.lower(), field_type, field_length, default_value)
 
 def _get_pkey_field(sql_line):
+    """Extract the field name if this is a primary key.
+    
+    Args:
+        sql_line (str): A line of SQL CREATE TABLE code.
+    Returns:
+        results (list): A list of found primary key fields.
+    """
     results = re.findall(SQL_FIELD_PKEY, sql_line)[0]
     return results
 
 
 def get_index_doc(s):
-    """Scan forwards for the index doc"""
+    """Scan forwards for the PATSTAT index document, which contains the schema.
+    
+    Args:
+        s (:obj:`requests.session`): A requests session, logged into the PATSTAT website.
+    Returns:
+        info (tuple): URL and ZipFile corresponding to the PATSTAT index document.
+    """
     for url, zipfile in zipfiles_on_pages(s):
         if INDEX_DOC_STR in url:
             break
@@ -53,6 +86,13 @@ def get_index_doc(s):
 
 
 def get_sql_data(zipfile):
+    """Extract all SQL creation scripts from the PATSTAT index zipfile.
+    
+    Args:
+        zipfile (ZipFile): The PATSTAT index zipfile.
+    Returns:
+        sql_data (dict): The SQL creation scripts organised by table type.
+    """
     sql_data = defaultdict(dict)
     for fname, f in files_in_zipfile(zipfile):
         if not (fname.startswith("CreateScripts") and fname.endswith(".sql")):
@@ -64,6 +104,7 @@ def get_sql_data(zipfile):
     return sql_data
 
 def parse_sql_table_fields(sql_table_text):
+    """ """
     field_data = {}
     pkeys = []
     start, end = False, False
@@ -86,18 +127,26 @@ def parse_sql_table_fields(sql_table_text):
             field_data[field_name] = (field_type, field_length, default_value)
         if end:
             field_name = _get_pkey_field(line)
-            pkeys.append(field_name)
+            pkeys.append(field_name.lower())
+
+    if len(pkeys) == 0:
+        raise ValueError(f"No primary keys found in {sql_table_text}")
+
     return field_data, pkeys
 
-def generate_model_text(table_name, field_data, pkeys):
+def generate_model_text(table_name, field_data, pkeys, 
+                        default_field_length=100000):  ## Allows MySQL to default to MEDIUMTEXT
     types = []
     model_text = (f"class {table_name.title().replace('_','')}(Base):\n"
                   f"\t__tablename__ = '{table_name}'\n")
     for field_name, (field_type, field_length, default_value) in field_data.items():
+        if field_type.upper() == "TINYINT":
+            field_type = "SMALLINT"
+
         text = f"\t{field_name} = Column({field_type.upper()}"
         if field_length is not None:
             if type(field_length) is str and field_length.lower() == "max":
-                field_length = None
+                field_length = default_field_length
             text += f"({field_length})"
         if field_name in pkeys:
             text += ", primary_key=True"
@@ -121,7 +170,7 @@ def generate_orm_head(types):
 def get_sql_table_name(sql_table_text):
     return re.findall(SQL_TABLE_NAME, sql_table_text)[0]
 
-def generate_schema(session, save_path="orms/"):
+def generate_schema(session):
     url, zipfile = get_index_doc(session)  
     db_suffix = extract_datestamp(url)
     sql_data = get_sql_data(zipfile)
@@ -138,14 +187,15 @@ def generate_schema(session, save_path="orms/"):
     head = generate_orm_head(types)
     orm_text = head + "\n\n".join(all_model_texts)
     
-    with open(f"{save_path}/patstat_{db_suffix}.py", "w") as f:
+    with open(f"orms/patstat_{db_suffix}.py", "w") as f:
         f.write(orm_text)
+    return db_suffix
     
 
 if __name__ == "__main__":
     from utils import login
     session = login(username="soraya.rusmaully@nesta.org.uk", pwd="6-Ttybw0LgNC")
-    generate_schema(session)
+    db_suffix = generate_schema(session)
 
 #session = login(username="soraya.rusmaully@nesta.org.uk", pwd="6-Ttybw0LgNC")
 #url, zipfile = get_index_doc(session)
