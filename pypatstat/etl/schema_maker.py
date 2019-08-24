@@ -194,10 +194,5 @@ def generate_schema(session):
 
 if __name__ == "__main__":
     from utils import login
-    session = login(username="MY_EMAIL", pwd="MY_PATSTAT_PASSWORD")
+    session = login(username="MY_EMAIL", pwd="PATSTAT_PASSWORD")
     db_suffix = generate_schema(session)
-
-#session = login(username="MY_EMAIL", pwd="MY_PATSTAT_PASSWORD")
-#url, zipfile = get_index_doc(session)
-#db_suffix = extract_datestamp(url)
-#sql_data = get_sql_data(zipfile)
