@@ -174,9 +174,8 @@ if __name__ == "__main__":
     # Example usage
     logging.basicConfig(level=logging.INFO)
     download_patstat_to_db("MY_EMAIL", "MY_PATSTAT_PASSWORD",
-                           ("mysql+pymysql://USERNAME:PASSWORD@"
-                            "DB_PATH"
-                            ".eu-west-2.rds.amazonaws.com"), chunksize=10000,
+                           "mysql+pymysql://USERNAME:PASSWORD@DB_PATH",
+                           chunksize=10000,
                            skip_fnames=['tls2','tls8','tls901','tls902','tls904'])
-                           #skip_fnames=['tls201', 'tls202', 'tls203',
-                           #             'tls204', 'tls205'])
+    #skip_fnames=['tls201', 'tls202', 'tls203',
+    #             'tls204', 'tls205'])
