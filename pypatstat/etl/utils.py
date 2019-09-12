@@ -19,14 +19,20 @@ def login(username, pwd):
     return s
 
 
-def _zipfiles_on_pages(**credentials):
+def _zipfiles_on_pages(start_from='', **credentials):
     s = login(**credentials)
-    r = s.get(RAW_DATA_URL)
+    r = s.get(RAW_DATA_URL, stream=True)
     soup = BeautifulSoup(r.text, "lxml")
+    start = False
     for anchor in soup.find_all("a", href=True):
         url = anchor["href"]
         if not (url.endswith(".zip") and url.startswith("download")):
             continue        
+        if start_from in url:
+            start = True
+        if not start:
+            logging.info(f'Skipping {url}')
+            continue
         s = login(**credentials)
         yield (url, _zipfile_from_url(s, url))
 

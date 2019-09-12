@@ -69,7 +69,29 @@ def try_until_allowed(f, *args, **kwargs):
             return value
 
 
-def write_to_db(db_url, Base, _class, rows, create_db=True, core_insert=True):
+def make_pk(row, _class):
+    pkey_cols = _class.__table__.primary_key.columns
+    pk = tuple([row[pkey.name]                       # Cast to str since
+                if pkey.type.python_type is not str  # pd can wrongly guess
+                else str(row[pkey.name])             # the type as int
+                for pkey in pkey_cols])
+    return pk
+
+
+def pk_chunks(session, _class, chunksize=100000):
+    pkey_cols = _class.__table__.primary_key.columns
+    fields = [getattr(_class, pkey.name)
+              for pkey in pkey_cols]
+    q = session.query(*fields)
+    offset = 0
+    while offset == 0 or len(pks) == chunksize:
+        pks = q.limit(chunksize).offset(offset).all()
+        yield set(pks)
+        offset += chunksize
+
+
+def write_to_db(db_url, Base, _class, rows, create_db=True, 
+                filter_pks=True):
     """Bulk write rows of data to the database.
 
     Args:
@@ -83,29 +105,41 @@ def write_to_db(db_url, Base, _class, rows, create_db=True, core_insert=True):
     engine = create_engine(db_url)
     if not database_exists(engine.url):
         create_database(engine.url)
+    engine.execution_options(stream_results=True)
 
     # Create the tables
     try_until_allowed(Base.metadata.create_all, engine)
 
-    # Insert the data
-    if core_insert:
-        conn = engine.connect()
-        conn.execute(_class.__table__.insert(), rows)
-        conn.close()
-        del conn
-    else:
-        entries = [_class(**row) for row in rows]
+    # Filter results if already in the db 
+    if filter_pks:
+        logging.info('Will filter PKs before inserting data')
         Session = try_until_allowed(sessionmaker, engine)
         session = try_until_allowed(Session)
-        session.bulk_save_objects(entries)
-        session.commit()
+        # Filter results if already in the db
+        # (this might look like a complicated setup,
+        # but its super fast and super memory efficient)
+        pks = [make_pk(row, _class) for row in rows]
+        logging.info('Generated new PKs')
+        new_pks = set(pks)
+        for old_pks in pk_chunks(session, _class):
+            new_pks = new_pks - old_pks # remove done pks
+        rows = [rows for pk, row in zip(pks, rows)
+                if pk in new_pks]
+        logging.info(f'Removing {len(rows) - len(pks)} '
+                     'rows before insert.')
         session.close()
         del session
+
+    # Insert the data
+    conn = engine.connect()
+    conn.execute(_class.__table__.insert(), rows)
+    conn.close()
+    del conn
     del engine
 
 
 def zipfile_to_db(zipfile, db_url, Base, chunksize=1000, 
-                  skip_fnames=[]):
+                  skip_fnames=[], restart_filename=None):
     """Write a zipfile contents (assumed zipped CSV) to a database.
 
     Args:
@@ -114,8 +148,16 @@ def zipfile_to_db(zipfile, db_url, Base, chunksize=1000,
         Base: SQLalchemy ORM Base object.
         chunksize (int): Size parameter to pass to :obj:`pd.read_csv`.
     """
+    start = bool(restart_filename is None)    
     for fname, f, zf in files_in_zipfile(zipfile, skip_fnames=skip_fnames,
                                          yield_zipfile_too=True):
+        restarting = (not start) and restart_filename in fname
+        if (not start) and restarting:
+            start = True
+        if not start:
+            logging.info(f"\tSkipping file {fname}...")
+            continue
+
         logging.info(f"\tProcessing nested file {fname}...")
         tablename = fname.split("_")[0]
         _class = get_class_by_tablename(Base, tablename)
@@ -124,12 +166,15 @@ def zipfile_to_db(zipfile, db_url, Base, chunksize=1000,
         with zf.open(fname) as z:
             for rows in iterchunks(z, chunksize=chunksize):
                 i+=len(rows)
-                write_to_db(db_url, Base, _class, rows)
+                write_to_db(db_url, Base, _class, rows,
+                            filter_pks=restarting)
         logging.info(f"\t\tWritten {i} entries for {tablename}.")
 
 
 def _download_patstat_to_db(db_url, Base, chunksize=1000,
-                            skip_fnames=[], **session_credentials):
+                            skip_fnames=[], restart_filename=None,
+                            n_jobs=1, start_from='',
+                            **session_credentials):
     """Download all patstat global data and write to a database.
 
     Args:
@@ -138,16 +183,32 @@ def _download_patstat_to_db(db_url, Base, chunksize=1000,
         Base: SQLalchemy ORM Base object.
         chunksize (int): Size parameter to pass to :obj:`pd.read_csv`.
     """
-    for url, zipfile in _zipfiles_on_pages(**session_credentials):
+    # rf = restart_filename
+    # if n_jobs > 1:
+    #     Parallel(n_jobs=n_jobs)(delayed(zipfile_to_db)(zipfile, db_url, 
+    #                                                    Base, chunksize=chunksize,
+    #                                                    skip_fnames=skip_fnames,
+    #                                                    restart_filename=rf)
+    #                             for url, zipfile 
+    #                             in _zipfiles_on_pages(**session_credentials)
+    #                             if INDEX_DOC_STR not in url)
+    #     return
+
+    # TODO: ugly repetition
+    for url, zipfile in _zipfiles_on_pages(start_from=start_from, 
+                                           **session_credentials):
         if INDEX_DOC_STR in url:
             continue
         logging.info(f"Processing file {url}...")
         zipfile_to_db(zipfile, db_url, Base, chunksize=chunksize, 
-                      skip_fnames=skip_fnames)
+                      skip_fnames=skip_fnames, 
+                      restart_filename=restart_filename)
 
 
-def download_patstat_to_db(patstat_usr, patstat_pwd, db_url, chunksize=1000,
-                           skip_fnames=[]):
+def download_patstat_to_db(patstat_usr, patstat_pwd, db_url, 
+                           chunksize=1000, skip_fnames=[],
+                           n_jobs=1, start_from='',
+                           restart_filename=None):
     """Automatically generate PATSTAT database and tables and populate 
     all tables in memory.
 
@@ -167,16 +228,22 @@ def download_patstat_to_db(patstat_usr, patstat_pwd, db_url, chunksize=1000,
     # Download the data and populate the database
     _download_patstat_to_db(db_url=db_url, chunksize=chunksize,
                             Base=locate(f'orms.patstat_{db_suffix}.Base'),
-                            skip_fnames=skip_fnames, username=patstat_usr, pwd=patstat_pwd)
+                            skip_fnames=skip_fnames, 
+                            restart_filename=restart_filename,
+                            n_jobs=n_jobs,
+                            start_from=start_from,
+                            username=patstat_usr, 
+                            pwd=patstat_pwd)
 
 
 if __name__ == "__main__":
     # Example usage
     logging.basicConfig(level=logging.INFO)
+    start_from = '_06.zip'
     download_patstat_to_db("soraya.rusmaully@nesta.org.uk", "6-Ttybw0LgNC",
                            ("mysql+pymysql://innovationMaster:innovationmapping@"
                             "innovation-mapping-mysql-mysql5721.ci9272ypsbyf"
                             ".eu-west-2.rds.amazonaws.com"), chunksize=10000,
-                           skip_fnames=['tls2','tls8','tls901','tls902','tls904'])
-                           #skip_fnames=['tls201', 'tls202', 'tls203',
-                           #             'tls204', 'tls205'])
+                           skip_fnames=['tls20', 'tls21'],
+                           start_from=start_from,
+                           n_jobs=1)
