@@ -240,9 +240,9 @@ if __name__ == "__main__":
     # Example usage
     logging.basicConfig(level=logging.INFO)
     start_from = '_06.zip'
-    download_patstat_to_db("soraya.rusmaully@nesta.org.uk", "6-Ttybw0LgNC",
-                           ("mysql+pymysql://innovationMaster:innovationmapping@"
-                            "innovation-mapping-mysql-mysql5721.ci9272ypsbyf"
+    download_patstat_to_db("@nesta.org.uk", "",
+                           ("mysql+pymysql://@"
+                            ".ci9272ypsbyf"
                             ".eu-west-2.rds.amazonaws.com"), chunksize=10000,
                            skip_fnames=['tls20', 'tls21'],
                            start_from=start_from,
