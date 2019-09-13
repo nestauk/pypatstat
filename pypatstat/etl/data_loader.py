@@ -12,7 +12,13 @@ from sqlalchemy_utils import create_database
 import logging
 from io import BytesIO
 import pandas as pd
+import time
 
+def is_null_pk(x):
+    if type(x) is str:
+        return x.strip() == ''
+    return x in (None, 0)
+    
 
 def iterchunks(zipped_csv, chunksize=1000):
     """Iterate through a zipped CSV file in chunks
@@ -51,14 +57,14 @@ def get_class_by_tablename(Base, tablename):
     raise NameError(tablename)
 
 
-def try_until_allowed(f, *args, **kwargs):
+def try_until_allowed(f, max_tries=1000, *args, **kwargs):
     '''Keep trying a function if a OperationalError is raised.
     Specifically meant for handling too many
     connections to a database.
     Args:
         f (:obj:`function`): A function to keep trying.
     '''
-    while True:
+    for itry in range(0, max_tries):
         try:
             value = f(*args, **kwargs)
         except OperationalError:
@@ -67,7 +73,7 @@ def try_until_allowed(f, *args, **kwargs):
             continue
         else:
             return value
-
+    raise OperationalError
 
 def make_pk(row, _class):
     pkey_cols = _class.__table__.primary_key.columns
@@ -109,6 +115,11 @@ def write_to_db(db_url, Base, _class, rows, create_db=True,
 
     # Create the tables
     try_until_allowed(Base.metadata.create_all, engine)
+
+    # Remove bad pks
+    if True:
+        rows = [r for r in rows 
+                if not is_null_pk(make_pk(row, _class))]
 
     # Filter results if already in the db 
     if filter_pks:
@@ -239,10 +250,10 @@ def download_patstat_to_db(patstat_usr, patstat_pwd, db_url,
 if __name__ == "__main__":
     # Example usage
     logging.basicConfig(level=logging.INFO)
-    start_from = '_06.zip'
-    download_patstat_to_db("@nesta.org.uk", "",
-                           ("mysql+pymysql://@"
-                            ".ci9272ypsbyf"
+    start_from = '_09.zip'
+    download_patstat_to_db("soraya.rusmaully@nesta.org.uk", "6-Ttybw0LgNC",
+                           ("mysql+pymysql://innovationMaster:innovationmapping@"
+                            "innovation-mapping-mysql-mysql5721.ci9272ypsbyf"
                             ".eu-west-2.rds.amazonaws.com"), chunksize=10000,
                            skip_fnames=['tls20', 'tls21'],
                            start_from=start_from,
