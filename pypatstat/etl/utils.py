@@ -19,18 +19,15 @@ def login(username, pwd):
     return s
 
 
-def _zipfiles_on_pages(start_from='', **credentials):
+def _zipfiles_on_pages(download_suffix='', **credentials):
     s = login(**credentials)
     r = s.get(RAW_DATA_URL, stream=True)
     soup = BeautifulSoup(r.text, "lxml")
-    start = False
     for anchor in soup.find_all("a", href=True):
         url = anchor["href"]
         if not (url.endswith(".zip") and url.startswith("download")):
             continue        
-        if start_from in url:
-            start = True
-        if not start:
+        if not url.endswith(download_suffix):
             logging.info(f'Skipping {url}')
             continue
         s = login(**credentials)
@@ -55,7 +52,7 @@ def _zipfile_from_url(s, url, chunk_size=2**25):  # Around 30MB
     return file_handle
 
         
-def files_in_zipfile(bio, skip_fnames=[], yield_zipfile_too=False):
+def files_in_zipfile(bio, skip_tables=[], yield_zipfile_too=False):
     try:
         zf = ZipFile(bio)
     except BadZipFile:
@@ -63,7 +60,7 @@ def files_in_zipfile(bio, skip_fnames=[], yield_zipfile_too=False):
         return
     
     for zipinfo in zf.infolist():
-        if any(zipinfo.filename.startswith(fn) for fn in skip_fnames):
+        if any(zipinfo.filename.startswith(fn) for fn in skip_tables):
             logging.info(f"\t\tSkipping {zipinfo.filename}")
             continue
         with zf.open(zipinfo) as f:

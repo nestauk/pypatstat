@@ -150,7 +150,7 @@ def write_to_db(db_url, Base, _class, rows, create_db=True,
 
 
 def zipfile_to_db(zipfile, db_url, Base, chunksize=1000, 
-                  skip_fnames=[], restart_filename=None):
+                  skip_tables=[], restart_filename=None):
     """Write a zipfile contents (assumed zipped CSV) to a database.
 
     Args:
@@ -160,7 +160,7 @@ def zipfile_to_db(zipfile, db_url, Base, chunksize=1000,
         chunksize (int): Size parameter to pass to :obj:`pd.read_csv`.
     """
     start = bool(restart_filename is None)    
-    for fname, f, zf in files_in_zipfile(zipfile, skip_fnames=skip_fnames,
+    for fname, f, zf in files_in_zipfile(zipfile, skip_tables=skip_tables,
                                          yield_zipfile_too=True):
         restarting = (not start) and restart_filename in fname
         if (not start) and restarting:
@@ -183,8 +183,8 @@ def zipfile_to_db(zipfile, db_url, Base, chunksize=1000,
 
 
 def _download_patstat_to_db(db_url, Base, chunksize=1000,
-                            skip_fnames=[], restart_filename=None,
-                            n_jobs=1, start_from='',
+                            skip_tables=[], restart_filename=None,
+                            download_suffix='',
                             **session_credentials):
     """Download all patstat global data and write to a database.
 
@@ -194,32 +194,19 @@ def _download_patstat_to_db(db_url, Base, chunksize=1000,
         Base: SQLalchemy ORM Base object.
         chunksize (int): Size parameter to pass to :obj:`pd.read_csv`.
     """
-    # rf = restart_filename
-    # if n_jobs > 1:
-    #     Parallel(n_jobs=n_jobs)(delayed(zipfile_to_db)(zipfile, db_url, 
-    #                                                    Base, chunksize=chunksize,
-    #                                                    skip_fnames=skip_fnames,
-    #                                                    restart_filename=rf)
-    #                             for url, zipfile 
-    #                             in _zipfiles_on_pages(**session_credentials)
-    #                             if INDEX_DOC_STR not in url)
-    #     return
-
-    # TODO: ugly repetition
-    for url, zipfile in _zipfiles_on_pages(start_from=start_from, 
+    for url, zipfile in _zipfiles_on_pages(download_suffix=download_suffix, 
                                            **session_credentials):
         if INDEX_DOC_STR in url:
             continue
         logging.info(f"Processing file {url}...")
         zipfile_to_db(zipfile, db_url, Base, chunksize=chunksize, 
-                      skip_fnames=skip_fnames, 
+                      skip_tables=skip_tables, 
                       restart_filename=restart_filename)
 
 
 def download_patstat_to_db(patstat_usr, patstat_pwd, db_url, 
-                           chunksize=1000, skip_fnames=[],
-                           n_jobs=1, start_from='',
-                           restart_filename=None):
+                           chunksize=1000, skip_tables=[],
+                           download_suffix='', restart_filename=None):
     """Automatically generate PATSTAT database and tables and populate 
     all tables in memory.
 
@@ -239,10 +226,9 @@ def download_patstat_to_db(patstat_usr, patstat_pwd, db_url,
     # Download the data and populate the database
     _download_patstat_to_db(db_url=db_url, chunksize=chunksize,
                             Base=locate(f'orms.patstat_{db_suffix}.Base'),
-                            skip_fnames=skip_fnames, 
+                            skip_tables=skip_tables, 
                             restart_filename=restart_filename,
-                            n_jobs=n_jobs,
-                            start_from=start_from,
+                            download_suffix=download_suffix,
                             username=patstat_usr, 
                             pwd=patstat_pwd)
 
@@ -250,11 +236,10 @@ def download_patstat_to_db(patstat_usr, patstat_pwd, db_url,
 if __name__ == "__main__":
     # Example usage
     logging.basicConfig(level=logging.INFO)
-    start_from = '_09.zip'
-    download_patstat_to_db("soraya.rusmaully@nesta.org.uk", "6-Ttybw0LgNC",
-                           ("mysql+pymysql://innovationMaster:innovationmapping@"
-                            "innovation-mapping-mysql-mysql5721.ci9272ypsbyf"
-                            ".eu-west-2.rds.amazonaws.com"), chunksize=10000,
-                           skip_fnames=['tls20', 'tls21'],
-                           start_from=start_from,
-                           n_jobs=1)
+    download_suffix = '_09.zip'  # If specified, only download file names with this suffix
+    skip_tables=['tls20', 'tls21']  # By table name prefixes to skip
+    download_patstat_to_db("MY_PATSTAT_EMAIL@SOMETHING.com", "MY_PATSTAT_PASSWORD",
+                           "mysql+pymysql://USERNAME:PASSWORD@MY_DB_ADDRESS", 
+                           chunksize=10000,  # Don't make this too big
+                           skip_tables=skip_tables,
+                           download_suffix=download_suffix)
