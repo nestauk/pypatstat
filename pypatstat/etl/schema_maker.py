@@ -1,5 +1,5 @@
-from utils import zipfiles_on_pages
-from utils import files_in_zipfile
+from pypatstat.etl.utils import zipfiles_on_pages
+from pypatstat.etl.utils import files_in_zipfile
 
 from collections import defaultdict
 import re
