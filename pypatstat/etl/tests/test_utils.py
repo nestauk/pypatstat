@@ -42,14 +42,17 @@ def test_zipfiles_on_pages(mocked_zf):
         pass
     assert i == i_good-1
 
-def test_files_in_zipfile():
+
+@mock.patch("utils.ZipFile")
+def test_files_in_zipfile(mocked_zf):
     # Mock up the zipfiles
     n_zips = 2431
-    mocked_infolist = mock.MagicMock(return_value=[None]*n_zips)
-    mocked_zf = mock.MagicMock(infolist=mocked_infolist)
+    infolist = [mock.MagicMock(filename=f'dummy{i}.txt') for i in range(n_zips)]
+    mocked_infolist = mock.MagicMock(return_value=infolist)
+    mocked_zf.return_value = mock.MagicMock(infolist=mocked_infolist)
     
     # Execute the test: expect to find `n_zips`
     for i, (filename, f) in enumerate(files_in_zipfile(mocked_zf)):
-        pass
+        assert filename == f'dummy{i}.txt'
     assert i == n_zips-1
 

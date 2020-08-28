@@ -1,8 +1,8 @@
-from utils import login
-from utils import _zipfiles_on_pages
-from utils import files_in_zipfile
-from schema_maker import generate_schema
-from schema_maker import INDEX_DOC_STR
+from pypatstat.etl.utils import login
+from pypatstat.etl.utils import _zipfiles_on_pages
+from pypatstat.etl.utils import files_in_zipfile
+from pypatstat.etl.schema_maker import generate_schema
+from pypatstat.etl.schema_maker import INDEX_DOC_STR
 from pydoc import locate
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
@@ -15,6 +15,7 @@ import pandas as pd
 import time
 
 def is_null_pk(x):
+    """PK deemed to be null if it is either whitespace, None or zero"""
     if type(x) is str:
         return x.strip() == ''
     return x in (None, 0)
@@ -75,7 +76,9 @@ def try_until_allowed(f, max_tries=1000, *args, **kwargs):
             return value
     raise OperationalError
 
+
 def make_pk(row, _class):
+    """Generate the primary key for this row based on ORM PK info"""
     pkey_cols = _class.__table__.primary_key.columns
     pk = tuple([row[pkey.name]                       # Cast to str since
                 if pkey.type.python_type is not str  # pd can wrongly guess
@@ -85,6 +88,7 @@ def make_pk(row, _class):
 
 
 def pk_chunks(session, _class, chunksize=100000):
+    """Yield chunks of primary keys from the database via the table-ORM"""
     pkey_cols = _class.__table__.primary_key.columns
     fields = [getattr(_class, pkey.name)
               for pkey in pkey_cols]
@@ -150,7 +154,7 @@ def write_to_db(db_url, Base, _class, rows, create_db=True,
 
 
 def zipfile_to_db(zipfile, db_url, Base, chunksize=1000, 
-                  skip_tables=[], restart_filename=None):
+                  skip_table_prefixes=[], restart_filename=None):
     """Write a zipfile contents (assumed zipped CSV) to a database.
 
     Args:
@@ -160,7 +164,7 @@ def zipfile_to_db(zipfile, db_url, Base, chunksize=1000,
         chunksize (int): Size parameter to pass to :obj:`pd.read_csv`.
     """
     start = bool(restart_filename is None)    
-    for fname, f, zf in files_in_zipfile(zipfile, skip_tables=skip_tables,
+    for fname, f, zf in files_in_zipfile(zipfile, skip_table_prefixes=skip_table_prefixes,
                                          yield_zipfile_too=True):
         restarting = (not start) and restart_filename in fname
         if (not start) and restarting:
@@ -182,8 +186,8 @@ def zipfile_to_db(zipfile, db_url, Base, chunksize=1000,
         logging.info(f"\t\tWritten {i} entries for {tablename}.")
 
 
-def _download_patstat_to_db(db_url, Base, chunksize=1000,
-                            skip_tables=[], restart_filename=None,
+def _download_patstat_to_db(db_url, Base, chunksize=10000,
+                            skip_table_prefixes=[], restart_filename=None,
                             download_suffix='',
                             **session_credentials):
     """Download all patstat global data and write to a database.
@@ -200,12 +204,12 @@ def _download_patstat_to_db(db_url, Base, chunksize=1000,
             continue
         logging.info(f"Processing file {url}...")
         zipfile_to_db(zipfile, db_url, Base, chunksize=chunksize, 
-                      skip_tables=skip_tables, 
+                      skip_table_prefixes=skip_table_prefixes, 
                       restart_filename=restart_filename)
 
 
 def download_patstat_to_db(patstat_usr, patstat_pwd, db_url, 
-                           chunksize=1000, skip_tables=[],
+                           chunksize=10000, skip_table_prefixes=[],
                            download_suffix='', restart_filename=None):
     """Automatically generate PATSTAT database and tables and populate 
     all tables in memory.
@@ -225,8 +229,8 @@ def download_patstat_to_db(patstat_usr, patstat_pwd, db_url,
                  f"A database will be created at {db_url}")
     # Download the data and populate the database
     _download_patstat_to_db(db_url=db_url, chunksize=chunksize,
-                            Base=locate(f'orms.patstat_{db_suffix}.Base'),
-                            skip_tables=skip_tables, 
+                            Base=locate(f'pypatstat.etl.orms.patstat_{db_suffix}.Base'),
+                            skip_table_prefixes=skip_table_prefixes, 
                             restart_filename=restart_filename,
                             download_suffix=download_suffix,
                             username=patstat_usr, 
@@ -237,9 +241,9 @@ if __name__ == "__main__":
     # Example usage
     logging.basicConfig(level=logging.INFO)
     download_suffix = '_09.zip'  # If specified, only download file names with this suffix
-    skip_tables=['tls20', 'tls21']  # By table name prefixes to skip
+    skip_table_prefixes=['tls20', 'tls21']  # By table name prefixes to skip
     download_patstat_to_db("MY_PATSTAT_EMAIL@SOMETHING.com", "MY_PATSTAT_PASSWORD",
                            "mysql+pymysql://USERNAME:PASSWORD@MY_DB_ADDRESS", 
                            chunksize=10000,  # Don't make this too big
-                           skip_tables=skip_tables,
+                           skip_table_prefixes=skip_table_prefixes,
                            download_suffix=download_suffix)
