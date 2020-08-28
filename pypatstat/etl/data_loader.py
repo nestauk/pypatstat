@@ -235,15 +235,3 @@ def download_patstat_to_db(patstat_usr, patstat_pwd, db_url,
                             download_suffix=download_suffix,
                             username=patstat_usr, 
                             pwd=patstat_pwd)
-
-
-if __name__ == "__main__":
-    # Example usage
-    logging.basicConfig(level=logging.INFO)
-    download_suffix = '_09.zip'  # If specified, only download file names with this suffix
-    skip_table_prefixes=['tls20', 'tls21']  # By table name prefixes to skip
-    download_patstat_to_db("MY_PATSTAT_EMAIL@SOMETHING.com", "MY_PATSTAT_PASSWORD",
-                           "mysql+pymysql://USERNAME:PASSWORD@MY_DB_ADDRESS", 
-                           chunksize=10000,  # Don't make this too big
-                           skip_table_prefixes=skip_table_prefixes,
-                           download_suffix=download_suffix)

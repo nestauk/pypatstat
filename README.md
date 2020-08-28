@@ -9,7 +9,7 @@ from pypatstat import download_patstat_to_db
 
 email = "MY_PATSTAT_EMAIL@SOMETHING.com"  # The email address you have which is registered with PATSTAT
 password = "MY_PATSTAT_PASSWORD"  # The password PATSTAT gave you for your paid access to PATSTAT Global
-db_url = "mysql+pymysql://USERNAME:PASSWORD@MY_DB_ADDRESS" # DB connection URL
+db_url = "mysql+pymysql://USERNAME:PASSWORD@HOST" # DB connection URL
 
 download_patstat_to_db(email, password, db_url)  # <--- will take a couple of days. I suggest running in tmux or similar.
 ```
