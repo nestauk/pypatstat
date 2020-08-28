@@ -10,6 +10,7 @@ AUTH_URL=f"{TOP_URL}/authentication"
 RAW_DATA_URL=f"{TOP_URL}/product?productId=86"
 
 def login(username, pwd):
+    """Log into your PATSTAT account and setup a session"""
     s = session()    
     r = s.post(AUTH_URL, data=dict(action=1, submit="Log in",
                                    login=username, pwd=pwd))
@@ -20,6 +21,7 @@ def login(username, pwd):
 
 
 def _zipfiles_on_pages(download_suffix='', **credentials):
+    """Retrieve a list of all zipfiles"""
     s = login(**credentials)
     r = s.get(RAW_DATA_URL, stream=True)
     soup = BeautifulSoup(r.text, "lxml")
@@ -35,6 +37,7 @@ def _zipfiles_on_pages(download_suffix='', **credentials):
 
 
 def zipfiles_on_pages(s):
+    """Retrieve a list of all zipfiles"""
     r = s.get(RAW_DATA_URL)
     soup = BeautifulSoup(r.text, "lxml")
     for anchor in soup.find_all("a", href=True):
@@ -45,6 +48,7 @@ def zipfiles_on_pages(s):
 
 
 def _zipfile_from_url(s, url, chunk_size=2**25):  # Around 30MB
+    """Retrieve a zipfile"""
     r = s.get(f"{TOP_URL}/{url}", stream=True)
     file_handle = BytesIO()
     for chunk in r.iter_content(chunk_size):
@@ -52,7 +56,8 @@ def _zipfile_from_url(s, url, chunk_size=2**25):  # Around 30MB
     return file_handle
 
         
-def files_in_zipfile(bio, skip_tables=[], yield_zipfile_too=False):
+def files_in_zipfile(bio, skip_table_prefixes=[], yield_zipfile_too=False):
+    """Yield individual files from the zipfile"""
     try:
         zf = ZipFile(bio)
     except BadZipFile:
@@ -60,7 +65,7 @@ def files_in_zipfile(bio, skip_tables=[], yield_zipfile_too=False):
         return
     
     for zipinfo in zf.infolist():
-        if any(zipinfo.filename.startswith(fn) for fn in skip_tables):
+        if any(zipinfo.filename.startswith(fn) for fn in skip_table_prefixes):
             logging.info(f"\t\tSkipping {zipinfo.filename}")
             continue
         with zf.open(zipinfo) as f:
